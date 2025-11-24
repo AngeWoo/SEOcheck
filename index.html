@@ -1,662 +1,721 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>SEO 健檢小工具（Pro 版＋GEO：Generative Engine Optimization）</title>
-<meta name="description" content="輸入網址或貼上原始碼進行 SEO 健檢：Technical / On-Page / GEO（Generative Engine Optimization）/ Off-Page，並產出可直接貼上的修補範例。">
-
-<style>
-  :root{
-    --bg:#0b1020;--bg-2:#0f172a;--panel:#0e1526;--muted:#94a3b8;--ink:#e5e7eb;
-    --ok:#22c55e;--ok-weak:#0f2d1d;--warn:#f59e0b;--warn-weak:#2c220a;--bad:#ef4444;--bad-weak:#341214;
-    --border:rgba(255,255,255,.10);--border-weak:rgba(255,255,255,.06);--card:#0c1426;--link:#60a5fa;
-    --chip:#0f1a30;--chip-bd:rgba(255,255,255,.12);
-  }
-  *{box-sizing:border-box}
-  html,body{margin:0;height:100%;background:radial-gradient(1200px 800px at 20% -10%,#0b1430,transparent),linear-gradient(180deg,#0b1020,#0b1220 40%,#0f172a);color:var(--ink);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans TC","Helvetica Neue",Arial;}
-  a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
-  .wrap{max-width:1280px;margin:32px auto;padding:0 18px}
-
-  .card{background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.03));border:1px solid var(--border);border-radius:20px;box-shadow:0 22px 50px rgba(0,0,0,.35)}
-  .head{padding:22px 22px 0}
-  .title{font-size:22px;font-weight:800;letter-spacing:.3px}
-  .sub{color:var(--muted);font-size:14px;margin-top:6px}
-  .body{padding:18px 22px 22px}
-
-  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-  input[type=url], textarea{
-    width:100%;flex:1 1 560px;background:#0b1220;color:var(--ink);
-    border:1px solid var(--border);border-radius:12px;padding:14px;font-size:14px;outline:none;
-  }
-  input[type=url]::placeholder,textarea::placeholder{color:#70809a}
-  textarea{min-height:160px;display:none}
-  .btn{
-    background:linear-gradient(135deg,#2563eb,#7c3aed);border:none;color:white;font-weight:700;
-    padding:12px 16px;border-radius:12px;cursor:pointer;transition:transform .06s ease,opacity .2s,box-shadow .2s;
-    box-shadow:0 6px 24px rgba(37,99,235,.25);
-  }
-  .btn.secondary{background:#1f2937;box-shadow:none}
-  .btn.ghost{background:transparent;border:1px solid var(--border);box-shadow:none}
-  .btn:active{transform:scale(.98)}
-  .hint{font-size:12px;color:var(--muted);margin-top:8px}
-
-  .grid{display:grid;grid-template-columns:1.2fr .8fr;gap:16px;margin-top:16px}
-  @media (max-width:1100px){.grid{grid-template-columns:1fr}}
-  .sec{background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));border:1px solid var(--border);border-radius:16px;padding:14px}
-  .sec h3{margin:0 0 10px 0;font-size:15px;display:flex;align-items:center;gap:10px}
-  .sec h3 .meta{color:var(--muted);font-weight:500;font-size:12px}
-
-  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-  .chip{background:var(--chip);border:1px solid var(--chip-bd);padding:6px 10px;border-radius:999px;font-size:12px;color:#cbd5e1}
-  .status{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
-
-  .list{margin:4px 0 0 0;padding-left:0}
-  .item{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:10px;border:1px solid var(--border-weak);margin:6px 0;background:#0b1220}
-  .item .icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px}
-  .ok .icon{background:var(--ok-weak);color:#86efac;border:1px solid rgba(34,197,94,.35)}
-  .warn .icon{background:var(--warn-weak);color:#fde68a;border:1px solid rgba(245,158,11,.35)}
-  .bad .icon{background:var(--bad-weak);color:#fecaca;border:1px solid rgba(239,68,68,.35)}
-  .item .text{line-height:1.55;word-break:break-word}
-  .links{color:var(--muted);font-size:12px;word-break:break-all}
-
-  .ext{display:flex;flex-wrap:wrap;gap:10px}
-  .ext a{padding:6px 10px;border:1px solid var(--border);border-radius:999px;background:#0c162a}
-
-  .samples{margin-top:14px;display:flex;flex-direction:column;gap:10px}
-  .sample-card{background:#0b1220;border:1px solid var(--border);border-radius:14px;overflow:hidden}
-  .sample-head{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px dashed var(--border)}
-  .sample-title{font-size:14px;font-weight:800}
-  .sample-ctrls{display:flex;gap:8px;align-items:center}
-  .copy-btn,.toggle-btn{font-size:12px;border:1px solid var(--chip-bd);padding:6px 10px;border-radius:8px;background:rgba(255,255,255,.06);color:#fff;cursor:pointer}
-  .copy-btn:active,.toggle-btn:active{transform:scale(.98)}
-  .sample-meta{display:flex;gap:6px;flex-wrap:wrap;padding:8px 12px}
-  .tag{font-size:11px;border:1px solid var(--chip-bd);padding:3px 8px;border-radius:999px;background:rgba(255,255,255,.04)}
-  .sample-note{color:var(--muted);font-size:12px;margin:0 12px 8px}
-  pre{margin:0;padding:12px;background:#0a1020;border-top:1px solid var(--border-weak);max-height:360px;overflow:auto}
-  code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,"Courier New",monospace;font-size:12.5px;color:#d1e7ff;white-space:pre-wrap;word-break:break-word}
-
-  .fab{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:10px;z-index:30}
-  .fab .btn{padding:10px 12px;border-radius:10px}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>完整 SEO & GEO 優化檢查工具</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        .header h1 { font-size: 2.5rem; margin-bottom: 10px; }
+        .tabs { display: flex; background: #f5f5f5; }
+        .tab { flex: 1; padding: 20px; background: none; border: none; font-size: 1rem; font-weight: 600; cursor: pointer; color: #666; border-bottom: 3px solid transparent; }
+        .tab.active { color: #667eea; background: white; border-bottom-color: #667eea; }
+        .content { padding: 40px; }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+        input[type="url"], textarea { width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 10px; font-size: 1rem; margin-bottom: 15px; }
+        input:focus, textarea:focus { outline: none; border-color: #667eea; }
+        textarea { font-family: monospace; min-height: 300px; }
+        #server-status { padding: 10px 15px; border-radius: 8px; margin-bottom: 15px; font-weight: 500; text-align: center; transition: all 0.3s ease; border: 1px solid transparent; }
+        #server-status.status-ok { background-color: #dcfce7; color: #15803d; border-color: #4ade80; }
+        #server-status.status-error { background-color: #fee2e2; color: #b91c1c; border-color: #f87171; text-align: left; }
+        #server-status code { background-color: rgba(0,0,0,0.08); padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+        .btn { padding: 15px 30px; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; color: white; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .btn-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); margin-right: 10px; }
+        .btn-download { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); margin-right: 10px; }
+        .btn-secondary { background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); }
+        .results { display: none; }
+        .results.show { display: block; }
+        .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .summary-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 15px; text-align: center; }
+        .summary-card h3 { font-size: 2.5rem; margin-bottom: 5px; }
+        .summary-card p { opacity: 0.9; font-size: 0.9rem; }
+        .section-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px 30px; margin: 30px 0 20px 0; border-radius: 10px; font-size: 1.5rem; font-weight: 700; }
+        .subsection-header { background: #f3f4f6; padding: 15px 20px; margin: 20px 0 15px 0; border-radius: 8px; font-size: 1.2rem; font-weight: 700; color: #374151; border-left: 5px solid #667eea; }
+        .check-item { background: white; border-radius: 10px; padding: 20px; margin-bottom: 15px; border: 2px solid #e5e7eb; }
+        .check-item.good { border-left: 5px solid #10b981; background: #f0fdf4; }
+        .check-item.warning { border-left: 5px solid #f59e0b; background: #fffbeb; }
+        .check-item.error { border-left: 5px solid #ef4444; background: #fef2f2; }
+        .check-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 10px; }
+        .status-badge { display: inline-block; width: 28px; height: 28px; border-radius: 50%; text-align: center; line-height: 28px; font-weight: 700; margin-right: 10px; }
+        .good .status-badge { background: #10b981; color: white; }
+        .warning .status-badge { background: #f59e0b; color: white; }
+        .error .status-badge { background: #ef4444; color: white; }
+        .check-value { background: #f9fafb; padding: 12px; border-radius: 8px; margin: 10px 0; font-family: monospace; font-size: 0.9rem; word-break: break-all; }
+        .check-info { color: #6b7280; font-size: 0.95rem; margin: 8px 0; }
+        .check-suggestion { background: #eff6ff; padding: 12px; border-radius: 8px; margin: 10px 0; color: #1e40af; font-size: 0.95rem; border-left: 3px solid #3b82f6; }
+        .code-box { background: #1e293b; color: #e2e8f0; padding: 15px; border-radius: 8px; margin: 10px 0; font-family: monospace; font-size: 0.85rem; overflow-x: auto; white-space: pre-wrap; }
+        .copy-btn { background: #10b981; color: white; border: none; padding: 6px 15px; border-radius: 5px; cursor: pointer; font-size: 0.85rem; margin-top: 8px; }
+        .loading { text-align: center; padding: 40px; display: none; }
+        .loading.show { display: block; }
+        .spinner { border: 4px solid #f3f4f6; border-top: 4px solid #667eea; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .result-card { background: #f9fafb; border-radius: 15px; padding: 30px; margin-bottom: 30px; }
+        .optimized-code, .optimized-code * { color: red !important; font-weight: bold; }
+        .btn-copy-all { background: #10b981; color: white; border: none; padding: 8px 18px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; }
+    </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="card">
-    <div class="head">
-      <div class="title">SEO 健檢小工具（Pro 版＋GEO：Generative Engine Optimization）</div>
-      <div class="sub">輸入任一頁面網址，系統抓取 HTML 分析 Technical／On-Page／<b>GEO（生成式引擎優化）</b>／Off-Page，並自動產出可貼上的修補範例。CORS 時可改「貼上原始碼」。</div>
+    <div class="container">
+        <div class="card">
+            <div class="header"><h1>🚀 完整 SEO & GEO 優化檢查工具</h1><p>超過 50+ 項目的專業級檢查</p></div>
+            <div class="tabs">
+                <button class="tab active" data-tab="url">🔍 分析網址</button>
+                <button class="tab" data-tab="code">💻 貼上原始碼</button>
+            </div>
+            <div class="content">
+                <div id="url" class="tab-panel active">
+                    <label style="display: block; font-weight: 600; margin-bottom: 10px;">輸入要分析的網址</label>
+                    <div id="server-status">正在檢查後端伺服器連線...</div>
+                    <input type="url" id="urlInput" placeholder="https://example.com">
+                    <div id="url-action-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                        <button id="url-analyze-btn" class="btn btn-primary" onclick="analyzeFromURL()">開始完整分析</button>
+                        <div id="url-results-buttons" style="display: none;">
+                             <button class="btn btn-success" onclick="optimizeCode()">⚡ 一鍵優化全部</button>
+                             <button class="btn btn-download" onclick="downloadCode()">⬇️ 下載優化代碼</button>
+                             <button class="btn btn-download" onclick="downloadSuggestions()">📥 下載優化建議</button>
+                             <button class="btn btn-secondary" onclick="window.location.reload()">🔄 重新分析</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="code" class="tab-panel">
+                    <label style="display: block; font-weight: 600; margin-bottom: 10px;">貼上 HTML 原始碼</label>
+                    <textarea id="codeInput"></textarea>
+                     <div id="code-action-bar" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                        <button id="code-analyze-btn" class="btn btn-primary" onclick="analyzeFromCode()">開始完整分析</button>
+                        <div id="code-results-buttons" style="display: none;">
+                             <button class="btn btn-success" onclick="optimizeCode()">⚡ 一鍵優化全部</button>
+                             <button class="btn btn-download" onclick="downloadCode()">⬇️ 下載優化代碼</button>
+                             <button class="btn btn-download" onclick="downloadSuggestions()">📥 下載優化建議</button>
+                             <button class="btn btn-secondary" onclick="window.location.reload()">🔄 重新分析</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="loading" class="loading"><div class="spinner"></div><p style="font-size: 1.1rem; font-weight: 600; color: #666;">正在進行完整分析...</p></div>
+                <div id="results" class="results">
+                    <div id="summary" class="summary-cards" style="margin-top: 30px;"></div>
+                    <div class="result-card"><div id="checkResults"></div></div>
+                    <div class="result-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                             <h2 style="font-size: 1.8rem; margin: 0;">💾 優化後的完整代碼</h2>
+                             <button class="btn-copy-all" onclick="copyFullCode()">📋 全選複製代碼</button>
+                        </div>
+                        <div class="code-box" style="min-height: 500px;"><pre><code id="outputCode" style="white-space: pre-wrap; word-wrap: break-word;"></code></pre></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="body">
-      <div class="row">
-        <input id="urlInput" type="url" placeholder="例如：https://www.example.com/your-page" />
-        <button id="analyzeBtn" class="btn">分析</button>
-        <button id="toggleRawBtn" class="btn secondary">貼上原始碼</button>
-      </div>
-      <textarea id="rawHtml" placeholder="將整頁 HTML 原始碼貼到這裡，然後按『分析』"></textarea>
-      <div class="hint">檢查：title/description/H1/canonical/JSON-LD/OG/Twitter/hreflang/ALT/robots.txt/sitemap/HTTPS/GA4/viewport/lang + <b>GEO 指標（FAQ可抽取度、TL;DR、References、Author/更新日期、Speakable、HowTo、表格/要點、錨點/目錄、權威外連…）</b>。</div>
 
-      <div id="status" class="chips"></div>
+    <script>
+        var htmlCode = '';
+        var checkData = [];
 
-      <div class="grid" id="results" style="display:none">
-        <section class="sec" id="sec-tech">
-          <h3>技術面（Technical） <span class="meta" id="techScore"></span></h3>
-          <div id="techItems" class="list"></div>
-          <div class="hr" style="height:1px;background:var(--border);margin:12px 0"></div>
-          <div class="ext small">外部檢測：<span id="extLinks" class="ext"></span></div>
-          <div class="samples" id="techSamples"></div>
-        </section>
+        function checkServerStatus() {
+            const statusEl = document.getElementById('server-status');
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000);
+            fetch('http://localhost:3000/status', { signal: controller.signal })
+                .then(response => { clearTimeout(timeoutId); if (!response.ok) throw new Error('伺服器回應錯誤'); return response.json(); })
+                .then(data => { if (data.status === 'ok') { statusEl.textContent = '✅ 後端伺服器已連線'; statusEl.className = 'status-ok'; } else { throw new Error('來自伺服器的回應無效'); } })
+                .catch(error => { clearTimeout(timeoutId); console.error('後端伺服器狀態檢查失敗:', error); statusEl.innerHTML = `❌ <strong>後端伺服器未啟動。</strong><br>請在終端機中，進入專案資料夾並執行 <code>node server.js</code> 指令。`; statusEl.className = 'status-error'; });
+        }
+        document.addEventListener('DOMContentLoaded', checkServerStatus);
 
-        <section class="sec" id="sec-onpage">
-          <h3>內容與頁面（On-Page） <span class="meta" id="onScore"></span></h3>
-          <div id="onItems" class="list"></div>
-          <div class="samples" id="onSamples"></div>
-        </section>
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                var targetTab = this.getAttribute('data-tab');
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+                document.getElementById(targetTab).classList.add('active');
+            });
+        });
 
-        <!-- GEO / Generative Engine Optimization -->
-        <section class="sec" id="sec-geo" style="grid-column:1/-1">
-          <h3>GEO（Generative Engine Optimization：生成式引擎優化） <span class="meta" id="geoScore"></span></h3>
-          <div id="geoItems" class="list"></div>
-          <div class="samples" id="geoSamples"></div>
-        </section>
+        function analyzeFromURL() {
+            var url = document.getElementById('urlInput').value.trim();
+            if (!url) { alert('請輸入網址'); return; }
+            showLoading();
+            fetch('http://localhost:3000/proxy?url=' + encodeURIComponent(url))
+                .then(res => { if (!res.ok) throw new Error('伺服器回應錯誤: ' + res.status); return res.text(); })
+                .then(html => { analyzeHTML(html, 'url'); hideLoading(); })
+                .catch(err => { console.error('Fetch 錯誤:', err); hideLoading(); alert('無法獲取網頁，請確認您的後端代理伺服器 (server.js) 是否已啟動'); checkServerStatus(); });
+        }
 
-        <section class="sec" id="sec-offpage" style="grid-column:1/-1">
-          <h3>外部與品牌（Off-Page 基礎可見度） <span class="meta" id="offScore"></span></h3>
-          <div id="offItems" class="list"></div>
-          <div class="item warn">
-            <div class="icon">ℹ️</div>
-            <div class="text muted">反向連結/品牌提及需用 Ahrefs / Semrush / GSC 檢視；下方提供「站內可做」的基礎樣板（如可被引用的研究頁）。</div>
-          </div>
-          <div class="samples" id="offSamples"></div>
-        </section>
-      </div>
+        function analyzeFromCode() {
+            var code = document.getElementById('codeInput').value.trim();
+            if (!code) { alert('請貼上 HTML 代碼'); return; }
+            showLoading();
+            setTimeout(() => { analyzeHTML(code, 'code'); hideLoading(); }, 500);
+        }
 
-      <div class="status" id="downloadBox" style="display:none">
-        <button id="dlJson" class="btn secondary">下載 JSON 報告</button>
-        <span class="chip">掃描時間：<span id="scanTime"></span></span>
-        <span class="chip">URL：<span id="scanUrl"></span></span>
-      </div>
+        function safeText(el) { try { return el ? el.textContent.trim() : ''; } catch(e) { return ''; } }
+        function safeAttr(el, attr) { try { return el ? (el.getAttribute(attr) || '') : ''; } catch(e) { return ''; } }
+
+        function analyzeHTML(html, source) {
+            htmlCode = html;
+            checkData = [];
+            try {
+                var parser = new DOMParser(); var doc = parser.parseFromString(html, 'text/html');
+                if (doc.querySelector('parsererror')) throw new Error('解析 HTML 時發生錯誤');
+                
+                checkData.push({ type: 'section', text: 'SEO 傳統搜尋引擎優化' });
+                checkData.push({ type: 'subsection', text: '📋 基礎 Meta 標籤' });
+                var titleEl = doc.querySelector('title'); var titleText = safeText(titleEl); var titleLen = titleText.length; checkData.push({ type: 'check', name: 'Title 網頁標題', status: titleEl && titleLen >= 30 && titleLen <= 60 ? 'good' : titleEl ? 'warning' : 'error', value: titleText || '未設定', info: '長度: ' + titleLen + ' (建議 30-60)', suggestion: titleLen < 30 ? '標題太短' : titleLen > 60 ? '標題太長' : '', code: '<title>主要關鍵字 | 品牌</title>' });
+                var descEl = doc.querySelector('meta[name="description"]'); var descText = safeAttr(descEl, 'content'); var descLen = descText.length; checkData.push({ type: 'check', name: 'Meta Description', status: descEl && descLen >= 120 && descLen <= 160 ? 'good' : descEl ? 'warning' : 'error', value: descText || '未設定', info: '長度: ' + descLen + ' (建議 120-160)', suggestion: !descEl ? '必須添加' : descLen < 120 ? '描述太短' : descLen > 160 ? '描述太長' : '', code: '<meta name="description" content="清楚描述網頁內容...">' });
+                var viewportEl = doc.querySelector('meta[name="viewport"]'); checkData.push({ type: 'check', name: 'Viewport 響應式', status: viewportEl ? 'good' : 'error', value: safeAttr(viewportEl, 'content') || '未設定', info: viewportEl ? '支援手機' : '必須設定', suggestion: !viewportEl ? '必須添加以支援行動裝置' : '', code: '<meta name="viewport" content="width=device-width, initial-scale=1.0">' });
+                var charsetEl = doc.querySelector('meta[charset]'); checkData.push({ type: 'check', name: 'Charset 字元編碼', status: charsetEl ? 'good' : 'error', value: safeAttr(charsetEl, 'charset') || '未設定', info: charsetEl ? '正確設定' : '必須設定', suggestion: !charsetEl ? '必須添加 UTF-8' : '', code: '<meta charset="UTF-8">' });
+                var hasLang = doc.documentElement.lang; checkData.push({ type: 'check', name: 'Language 語言', status: hasLang ? 'good' : 'warning', value: hasLang || '未設定', info: hasLang ? '已設定' : '建議設定', suggestion: !hasLang ? '建議標記語言' : '', code: '<html lang="zh-TW">' });
+                var canonicalEl = doc.querySelector('link[rel="canonical"]'); checkData.push({ type: 'check', name: 'Canonical 連結規範', status: canonicalEl ? 'good' : 'warning', value: safeAttr(canonicalEl, 'href') || '未設定', info: '避免重複內容問題', suggestion: !canonicalEl ? '建議設定以指定主要頁面' : '', code: '<link rel="canonical" href="https://example.com/page">' });
+                var robotsEl = doc.querySelector('meta[name="robots"]'); checkData.push({ type: 'check', name: 'Robots Meta 指令', status: robotsEl ? 'good' : 'warning', value: safeAttr(robotsEl, 'content') || '未設定', info: '控制搜尋引擎索引行為', suggestion: !robotsEl ? '建議設定索引指令' : '', code: '<meta name="robots" content="index, follow">' });
+                var faviconEl = doc.querySelector('link[rel="icon"], link[rel="shortcut icon"]'); checkData.push({ type: 'check', name: 'Favicon 網站圖示', status: faviconEl ? 'good' : 'warning', value: safeAttr(faviconEl, 'href') || '未設定', info: '提升品牌識別與使用者體驗', suggestion: !faviconEl ? '建議添加網站圖示' : '', code: '<link rel="icon" href="/favicon.ico">' });
+                var themeColorEl = doc.querySelector('meta[name="theme-color"]'); checkData.push({ type: 'check', name: 'Theme Color 主題色', status: themeColorEl ? 'good' : 'warning', value: safeAttr(themeColorEl, 'content') || '未設定', info: '行動裝置瀏覽器的主題顏色', suggestion: !themeColorEl ? '建議設定以提升行動體驗' : '', code: '<meta name="theme-color" content="#667eea">' });
+                var appleTouchIcon = doc.querySelector('link[rel="apple-touch-icon"]'); checkData.push({ type: 'check', name: 'Apple Touch Icon', status: appleTouchIcon ? 'good' : 'warning', value: safeAttr(appleTouchIcon, 'href') || '未設定', info: 'iOS 裝置的主畫面圖示', suggestion: !appleTouchIcon ? '建議添加 180x180px 圖示' : '', code: '<link rel="apple-touch-icon" href="/apple-touch-icon.png">' });
+                var authorEl = doc.querySelector('meta[name="author"]'); checkData.push({ type: 'check', name: 'Author 作者資訊', status: authorEl ? 'good' : 'warning', value: safeAttr(authorEl, 'content') || '未設定', info: '標示內容作者', suggestion: !authorEl ? '建議添加作者資訊' : '', code: '<meta name="author" content="作者名稱">' });
+                
+                checkData.push({ type: 'subsection', text: '📱 社群媒體標籤' });
+                var ogTitle = doc.querySelector('meta[property="og:title"]'); var ogDesc = doc.querySelector('meta[property="og:description"]'); var ogImage = doc.querySelector('meta[property="og:image"]'); var ogUrl = doc.querySelector('meta[property="og:url"]'); var ogType = doc.querySelector('meta[property="og:type"]'); var ogCount = [ogTitle, ogDesc, ogImage].filter(Boolean).length; checkData.push({ type: 'check', name: 'Open Graph 基本標籤', status: ogCount >= 3 ? 'good' : ogCount >= 2 ? 'warning' : 'error', value: '已設定 ' + ogCount + ' / 3 個核心標籤', info: 'Facebook、LinkedIn 分享', suggestion: ogCount < 3 ? '建議完整設定 og:title, og:description, og:image' : '', code: '<meta property="og:title" content="標題">\n<meta property="og:description" content="描述">\n<meta property="og:image" content="https://example.com/image.jpg">' });
+                var ogAdvancedCount = [ogUrl, ogType].filter(Boolean).length; checkData.push({ type: 'check', name: 'Open Graph 進階標籤', status: ogAdvancedCount >= 2 ? 'good' : ogAdvancedCount >= 1 ? 'warning' : 'warning', value: '已設定 ' + ogAdvancedCount + ' / 2 個', info: '完整的社群媒體優化', suggestion: ogAdvancedCount < 2 ? '建議添加 og:url 和 og:type' : '', code: '<meta property="og:url" content="https://example.com/page">\n<meta property="og:type" content="website">' });
+                var twitterCard = doc.querySelector('meta[name="twitter:card"]'); var twitterTitle = doc.querySelector('meta[name="twitter:title"]'); var twitterImage = doc.querySelector('meta[name="twitter:image"]'); var twitterCount = [twitterCard, twitterTitle, twitterImage].filter(Boolean).length; checkData.push({ type: 'check', name: 'Twitter Card', status: twitterCount >= 2 ? 'good' : twitterCount >= 1 ? 'warning' : 'warning', value: '已設定 ' + twitterCount + ' / 3 個', info: 'Twitter/X 分享卡片', suggestion: twitterCount < 2 ? '建議完整設定 Twitter Card' : '', code: '<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:title" content="標題">\n<meta name="twitter:image" content="圖片網址">' });
+                
+                checkData.push({ type: 'subsection', text: '📝 內容結構' });
+                var h1List = doc.querySelectorAll('h1'); var h1Count = h1List.length; var h1Text = Array.from(h1List).slice(0, 2).map(safeText).join(' | '); checkData.push({ type: 'check', name: 'H1 主標題', status: h1Count === 1 ? 'good' : h1Count > 1 ? 'warning' : 'error', value: h1Text || '未找到', info: '找到 ' + h1Count + ' 個 (建議 1 個)', suggestion: h1Count === 0 ? '必須有 H1' : h1Count > 1 ? '建議只有 1 個' : '', code: '<h1>主要標題</h1>' });
+                var h2List = doc.querySelectorAll('h2'); checkData.push({ type: 'check', name: 'H2 副標題', status: h2List.length > 0 ? 'good' : 'warning', value: `找到 ${h2List.length} 個`, info: '有助於建立內容層次結構', suggestion: h2List.length === 0 ? '建議至少使用一個 H2 來組織內容' : '', code: '<h2>副標題</h2>' });
+                var h3Count = doc.querySelectorAll('h3').length; var h4Count = doc.querySelectorAll('h4').length; var h5Count = doc.querySelectorAll('h5').length; var h6Count = doc.querySelectorAll('h6').length; var totalHeadings = h1Count + h2List.length + h3Count + h4Count + h5Count + h6Count; checkData.push({ type: 'check', name: '標題層次結構', status: totalHeadings >= 3 ? 'good' : totalHeadings >= 1 ? 'warning' : 'error', value: `H1:${h1Count}, H2:${h2List.length}, H3:${h3Count}, H4:${h4Count}`, info: '完整的內容層次有助於 SEO', suggestion: totalHeadings < 3 ? '建議使用多層次標題組織內容' : '', code: '<h1>主標題</h1>\n<h2>次標題</h2>\n<h3>小標題</h3>' });
+                var imgList = doc.querySelectorAll('img'); var imgCount = imgList.length; var imgNoAlt = Array.from(imgList).filter(img => !safeAttr(img, 'alt')).length; checkData.push({ type: 'check', name: '圖片 Alt 屬性', status: imgNoAlt === 0 ? 'good' : 'warning', value: imgCount + ' 張圖片，' + imgNoAlt + ' 張缺少 alt', info: 'SEO 和無障礙', suggestion: imgNoAlt > 0 ? '建議為所有圖片添加描述性的 alt 屬性' : '', code: '<img src="image.jpg" alt="描述圖片內容">' });
+                var imgNoDimensions = Array.from(imgList).filter(img => !safeAttr(img, 'width') || !safeAttr(img, 'height')).length; checkData.push({ type: 'check', name: '圖片尺寸屬性', status: imgNoDimensions === 0 ? 'good' : 'warning', value: imgCount + ' 張圖片，' + imgNoDimensions + ' 張缺少尺寸', info: '防止版面跳動，提升效能', suggestion: imgNoDimensions > 0 ? '建議為所有圖片設定 width 和 height 屬性' : '', code: '<img src="image.jpg" alt="描述" width="800" height="600">' });
+                var imgWithLazyLoad = Array.from(imgList).filter(img => safeAttr(img, 'loading') === 'lazy').length; checkData.push({ type: 'check', name: '圖片延遲載入', status: imgWithLazyLoad > 0 ? 'good' : 'warning', value: imgWithLazyLoad + ' / ' + imgCount + ' 張使用延遲載入', info: '提升頁面載入速度', suggestion: imgWithLazyLoad === 0 && imgCount > 3 ? '建議為非首屏圖片添加 loading="lazy"' : '', code: '<img src="image.jpg" alt="描述" loading="lazy">' });
+                var linkList = doc.querySelectorAll('a'); var linkCount = linkList.length; var externalLinks = Array.from(linkList).filter(a => { var href = safeAttr(a, 'href'); return href && (href.startsWith('http://') || href.startsWith('https://')) && !href.includes(window.location.hostname); }); var externalCount = externalLinks.length; var externalNoRel = externalLinks.filter(a => !safeAttr(a, 'rel')).length; checkData.push({ type: 'check', name: '外部連結安全屬性', status: externalNoRel === 0 ? 'good' : 'warning', value: externalCount + ' 個外部連結，' + externalNoRel + ' 個缺少 rel 屬性', info: '安全性和 SEO', suggestion: externalNoRel > 0 ? '建議為外部連結添加 rel="noopener" 或 rel="nofollow"' : '', code: '<a href="https://external.com" rel="noopener noreferrer">外部連結</a>' });
+                var bodyText = safeText(doc.body); var wordCount = bodyText.replace(/\s+/g, ' ').trim().length; checkData.push({ type: 'check', name: '頁面內容長度', status: wordCount >= 300 ? 'good' : wordCount >= 100 ? 'warning' : 'error', value: wordCount + ' 字元', info: '充實的內容有助於 SEO', suggestion: wordCount < 300 ? '建議增加頁面內容至少 300 字元以上' : '', code: '' });
+                
+                checkData.push({ type: 'subsection', text: '⚡ 效能優化' });
+                var preloadLinks = doc.querySelectorAll('link[rel="preload"], link[rel="prefetch"], link[rel="dns-prefetch"], link[rel="preconnect"]'); checkData.push({ type: 'check', name: '資源預載優化', status: preloadLinks.length > 0 ? 'good' : 'warning', value: '使用 ' + preloadLinks.length + ' 個預載指令', info: '提升頁面載入速度', suggestion: preloadLinks.length === 0 ? '建議使用 preload/prefetch 優化關鍵資源' : '', code: '<link rel="preload" href="font.woff2" as="font" crossorigin>\n<link rel="dns-prefetch" href="https://fonts.googleapis.com">' });
+                var inlineStyles = doc.querySelectorAll('[style]'); var inlineStyleCount = inlineStyles.length; checkData.push({ type: 'check', name: '行內樣式使用', status: inlineStyleCount <= 5 ? 'good' : inlineStyleCount <= 20 ? 'warning' : 'error', value: '找到 ' + inlineStyleCount + ' 處', info: '過多行內樣式影響維護性', suggestion: inlineStyleCount > 20 ? '建議減少行內樣式，改用 CSS 類別' : '', code: '<!-- 將樣式移至 CSS 檔案 -->\n<div class="container">內容</div>' });
+                
+                checkData.push({ type: 'section', text: 'GEO 生成式引擎優化（AI 搜尋）' });
+                checkData.push({ type: 'subsection', text: '🤖 結構化資料' });
+                
+                // === [MODIFIED] START: Schema Logic Improvement ===
+                const schemaScripts = doc.querySelectorAll('script[type="application/ld+json"]');
+                let allFoundTypes = [];
+                let hasArticle = false, hasFAQ = false, hasBreadcrumb = false, hasOrganization = false, hasWebSite = false, hasWebPage = false;
+
+                schemaScripts.forEach(script => {
+                    try {
+                        const data = JSON.parse(script.textContent);
+                        const graph = data['@graph'];
+                        const items = graph ? graph : [data];
+
+                        items.forEach(item => {
+                            const type = item['@type'];
+                            if (Array.isArray(type)) {
+                                allFoundTypes.push(...type);
+                            } else if (type) {
+                                allFoundTypes.push(type);
+                            }
+                        });
+                    } catch (e) {
+                        console.warn('Could not parse JSON-LD: ', e);
+                    }
+                });
+                
+                allFoundTypes = [...new Set(allFoundTypes)]; // 移除重複項目
+
+                hasArticle = allFoundTypes.some(t => ['Article', 'BlogPosting', 'NewsArticle'].includes(t));
+                hasFAQ = allFoundTypes.includes('FAQPage');
+                hasBreadcrumb = allFoundTypes.includes('BreadcrumbList');
+                hasOrganization = allFoundTypes.some(t => ['Organization', 'LocalBusiness'].includes(t));
+                hasWebSite = allFoundTypes.includes('WebSite');
+                hasWebPage = allFoundTypes.includes('WebPage');
+                
+                const basicSchemaTypes = ['Article', 'BlogPosting', 'NewsArticle', 'FAQPage', 'BreadcrumbList', 'Organization', 'LocalBusiness', 'WebSite', 'WebPage', 'ListItem', 'Question', 'Answer', 'EntryPoint', 'PostalAddress', 'ContactPoint', 'ImageObject', 'Offer', 'GeoCoordinates'];
+                const foundAdvancedTypes = allFoundTypes.filter(type => !basicSchemaTypes.includes(type));
+                const advancedSchemaCount = foundAdvancedTypes.length;
+                // === [MODIFIED] END: Schema Logic Improvement ===
+
+                var schemaScore = [hasArticle, hasFAQ, hasBreadcrumb, hasOrganization, hasWebSite, hasWebPage].filter(Boolean).length; checkData.push({ type: 'check', name: '結構化資料完整度', status: schemaScore >= 3 ? 'good' : schemaScore >= 1 ? 'warning' : 'error', value: '已設定 ' + schemaScore + ' / 6 種常用類型', info: 'AI 搜尋引擎的重要依據', suggestion: schemaScore < 3 ? '建議添加更多結構化資料類型' : '', code: '<script type="application/ld+json">\n{\n  "@context": "https://schema.org",\n  "@type": "WebSite",\n  "name": "網站名稱",\n  "url": "https://example.com"\n}\n<' + '/script>' });
+                checkData.push({ type: 'check', name: 'Article Schema', status: hasArticle ? 'good' : 'warning', value: hasArticle ? '已設定' : '未設定', info: 'AI 理解文章內容', suggestion: !hasArticle ? '適合部落格和新聞網站' : '', code: '<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"文章標題","author":{"@type":"Person","name":"作者"},"datePublished":"2025-01-01"}<' + '/script>' });
+                checkData.push({ type: 'check', name: 'FAQPage Schema', status: hasFAQ ? 'good' : 'warning', value: hasFAQ ? '已設定' : '未設定', info: 'AI 最愛的格式，易於引用', suggestion: !hasFAQ ? '非常適合問答型內容' : '', code: '<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"問題？","acceptedAnswer":{"@type":"Answer","text":"答案"}}]}<' + '/script>' });
+                checkData.push({ type: 'check', name: 'Breadcrumb Schema', status: hasBreadcrumb ? 'good' : 'warning', value: hasBreadcrumb ? '已設定' : '未設定', info: '幫助 AI 理解網站結構', suggestion: !hasBreadcrumb ? '建議添加麵包屑導航' : '', code: '<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"首頁","item":"https://example.com"}]}<' + '/script>' });
+                checkData.push({ type: 'check', name: 'Organization Schema', status: hasOrganization ? 'good' : 'warning', value: hasOrganization ? '已設定' : '未設定', info: '幫助 AI 建立品牌實體', suggestion: !hasOrganization ? '企業網站強烈建議添加' : '', code: '<script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"公司名稱","url":"https://example.com","logo":"https://example.com/logo.png"}<' + '/script>' });
+                checkData.push({ type: 'check', name: 'WebSite Schema', status: hasWebSite ? 'good' : 'warning', value: hasWebSite ? '已設定' : '未設定', info: '定義網站的搜尋功能', suggestion: !hasWebSite ? '建議添加網站級別的結構化資料' : '', code: '<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"網站名稱","url":"https://example.com","potentialAction":{"@type":"SearchAction","target":"https://example.com/search?q={search_term_string}"}}<' + '/script>' });
+                
+                // === [MODIFIED] START: Advanced Schema Reporting ===
+                const advancedValue = advancedSchemaCount > 0 ? `找到 ${advancedSchemaCount} 種進階類型: ${foundAdvancedTypes.join(', ')}` : '已使用 0 種進階類型';
+                checkData.push({ 
+                    type: 'check', 
+                    name: '進階 Schema 類型', 
+                    status: advancedSchemaCount > 0 ? 'good' : 'warning', 
+                    value: advancedValue, 
+                    info: '例如: Service, Product, Person, Event, Recipe 等', 
+                    suggestion: advancedSchemaCount === 0 ? '根據內容類型考慮添加更具體的 Schema' : '', 
+                    code: '<script type="application/ld+json">{"@context":"https://schema.org","@type":"Service","name":"服務名稱","description":"服務描述..."}<' + '/script>' 
+                });
+                // === [MODIFIED] END: Advanced Schema Reporting ===
+
+                checkData.push({ type: 'subsection', text: '🏗️ 語義化 HTML' });
+                var hasArticleTag = !!doc.querySelector('article'), hasSection = !!doc.querySelector('section'); var hasHeader = !!doc.querySelector('header'), hasMain = !!doc.querySelector('main'); var hasNav = !!doc.querySelector('nav'), hasFooter = !!doc.querySelector('footer'), hasAside = !!doc.querySelector('aside'); var semanticCount = [hasArticleTag, hasSection, hasHeader, hasMain, hasNav, hasFooter, hasAside].filter(Boolean).length; checkData.push({ type: 'check', name: '語義化標籤完整度', status: semanticCount >= 4 ? 'good' : semanticCount >= 2 ? 'warning' : 'error', value: '使用 ' + semanticCount + ' / 7 種', info: 'AI 識別網頁結構的關鍵', suggestion: semanticCount < 4 ? '建議使用 article, section, header, main, nav, footer, aside' : '', code: '<body>\n  <header>網站標頭</header>\n  <nav>導航</nav>\n  <main>\n    <article>主要內容</article>\n  </main>\n  <footer>網站頁尾</footer>\n</body>' });
+                var ulCount = doc.querySelectorAll('ul').length; var olCount = doc.querySelectorAll('ol').length; var listCount = ulCount + olCount; checkData.push({ type: 'check', name: '列表標籤使用', status: listCount >= 2 ? 'good' : listCount >= 1 ? 'warning' : 'warning', value: `UL: ${ulCount}, OL: ${olCount}`, info: 'AI 容易識別和引用的格式', suggestion: listCount === 0 ? '建議使用 <ul> 或 <ol> 組織列表內容' : '', code: '<ul>\n  <li>項目 1</li>\n  <li>項目 2</li>\n  <li>項目 3</li>\n</ul>' });
+                var timeCount = doc.querySelectorAll('time').length; checkData.push({ type: 'check', name: 'Time 時間標籤', status: timeCount > 0 ? 'good' : 'warning', value: '使用 ' + timeCount + ' 個', info: 'AI 識別時間資訊', suggestion: timeCount === 0 ? '建議使用 <time> 標記日期和時間' : '', code: '<time datetime="2025-01-01">2025年1月1日</time>' });
+                var strongCount = doc.querySelectorAll('strong').length; var emCount = doc.querySelectorAll('em').length; var emphasisCount = strongCount + emCount; checkData.push({ type: 'check', name: '語義化強調標籤', status: emphasisCount >= 3 ? 'good' : emphasisCount >= 1 ? 'warning' : 'warning', value: `Strong: ${strongCount}, Em: ${emCount}`, info: 'AI 識別重點內容', suggestion: emphasisCount === 0 ? '建議使用 <strong> 和 <em> 標記重點' : '', code: '<p>這是<strong>重要</strong>的內容，需要<em>強調</em></p>' });
+                
+                checkData.push({ type: 'subsection', text: '♿ 無障礙優化' });
+                var ariaElements = doc.querySelectorAll('[role], [aria-label], [aria-labelledby], [aria-describedby]'); checkData.push({ type: 'check', name: 'ARIA 無障礙標籤', status: ariaElements.length >= 3 ? 'good' : ariaElements.length >= 1 ? 'warning' : 'warning', value: '使用 ' + ariaElements.length + ' 處', info: '提升無障礙和 AI 理解', suggestion: ariaElements.length === 0 ? '建議添加 ARIA 屬性提升無障礙' : '', code: '<button aria-label="關閉對話框">×</button>\n<nav role="navigation" aria-label="主導航">...</nav>' });
+                var formCount = doc.querySelectorAll('form').length; var labelCount = doc.querySelectorAll('label').length; var inputCount = doc.querySelectorAll('input, textarea, select').length; checkData.push({ type: 'check', name: '表單無障礙標籤', status: formCount > 0 && labelCount >= inputCount * 0.8 ? 'good' : formCount > 0 ? 'warning' : 'good', value: `${formCount} 個表單，${labelCount}/${inputCount} 個欄位有標籤`, info: '表單欄位應配對 label', suggestion: formCount > 0 && labelCount < inputCount ? '建議為所有表單欄位添加 <label>' : '', code: '<label for="email">電子郵件</label>\n<input type="email" id="email" name="email">' });
+                
+                displayResults(source);
+            } catch (e) { console.error('分析錯誤:', e); hideLoading(); alert('分析 HTML 時發生錯誤'); }
+        }
+
+        function displayResults(source) {
+            document.getElementById('results').classList.add('show');
+            if (source === 'url') { document.getElementById('url-analyze-btn').style.display = 'none'; document.getElementById('url-results-buttons').style.display = 'block'; } 
+            else if (source === 'code') { document.getElementById('code-analyze-btn').style.display = 'none'; document.getElementById('code-results-buttons').style.display = 'block'; }
+            
+            document.getElementById('outputCode').textContent = htmlCode;
+            let goodCount = 0, warningCount = 0, errorCount = 0; checkData.forEach(item => { if (item.type !== 'check') return; if (item.status === 'good') goodCount++; else if (item.status === 'warning') warningCount++; else if (item.status === 'error') errorCount++; });
+            const totalCount = goodCount + warningCount + errorCount; const score = totalCount > 0 ? Math.round((goodCount / totalCount) * 100) : 0;
+            const summaryDiv = document.getElementById('summary'); summaryDiv.innerHTML = ''; summaryDiv.appendChild(createSummaryCard(score + '%', '整體分數')); summaryDiv.appendChild(createSummaryCard(goodCount, '優秀項目')); summaryDiv.appendChild(createSummaryCard(warningCount, '待改善')); summaryDiv.appendChild(createSummaryCard(errorCount, '需處理'));
+            const container = document.getElementById('checkResults'); container.innerHTML = ''; checkData.forEach(item => { if (item.type === 'section') { const el = document.createElement('div'); el.className = 'section-header'; el.textContent = item.text; container.appendChild(el); } else if (item.type === 'subsection') { const el = document.createElement('div'); el.className = 'subsection-header'; el.textContent = item.text; container.appendChild(el); } else if (item.type === 'check') { container.appendChild(createCheckItem(item)); } });
+        }
+
+        function createSummaryCard(num, text) { const card = document.createElement('div'); card.className = 'summary-card'; card.innerHTML = `<h3>${num}</h3><p>${text}</p>`; return card; }
+
+        function createCheckItem(data) { const item = document.createElement('div'); item.className = 'check-item ' + data.status; const badgeContent = data.status === 'good' ? '✓' : data.status === 'warning' ? '⚠' : '✕'; let html = `<div class="check-title"><span class="status-badge">${badgeContent}</span>${data.name}</div>`; if (data.value) html += `<div class="check-value">${data.value.replace(/</g, "&lt;")}</div>`; if (data.info) html += `<div class="check-info">${data.info}</div>`; if (data.suggestion) html += `<div class="check-suggestion">💡 ${data.suggestion}</div>`; if (data.code && data.status !== 'good') { html += `<div class="code-box">${data.code.replace(/</g, "&lt;")}</div>`; const copyBtn = document.createElement('button'); copyBtn.className = 'copy-btn'; copyBtn.textContent = '📋 複製代碼'; copyBtn.onclick = () => navigator.clipboard.writeText(data.code).then(() => alert('已複製')); item.innerHTML = html; item.appendChild(copyBtn); } else { item.innerHTML = html; } return item; }
+
+        function optimizeCode() {
+            if (!htmlCode) { alert('請先分析'); return; }
+
+            const escapeHtml = (unsafe) => unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+            
+            const doc = new DOMParser().parseFromString(htmlCode, 'text/html');
+            let changesMade = false;
+
+            const annotations = new Map();
+            checkData.filter(item => item.status !== 'good' && item.suggestion).forEach(item => {
+                const comment = `<!-- 💡 ${item.name}: ${item.suggestion} -->`;
+                let elements = [];
+                 switch (item.name) {
+                    case 'Title 網頁標題': elements = [doc.querySelector('title')]; break;
+                    case 'Meta Description': elements = [doc.querySelector('meta[name="description"]')]; break;
+                    case 'H1 主標題': elements = Array.from(doc.querySelectorAll('h1')); break;
+                    case '圖片 Alt 屬性': elements = Array.from(doc.querySelectorAll('img')).filter(img => !safeAttr(img, 'alt')); break;
+                }
+                elements.filter(Boolean).forEach(el => annotations.set(el, comment));
+            });
+
+            const rebuildNode = (node) => {
+                let functional = '', display = '';
+                
+                if (annotations.has(node)) {
+                    const comment = annotations.get(node);
+                    functional += `\n${comment}`;
+                    display += `\n<span class="optimized-code">${escapeHtml(comment)}</span>`;
+                    changesMade = true;
+                }
+
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                    let attrs = '';
+                    for (const attr of node.attributes) { attrs += ` ${attr.name}="${escapeHtml(attr.value)}"`; }
+                    
+                    let tagName = node.tagName.toLowerCase();
+                    if (tagName === 'html' && !node.lang) {
+                        attrs += ' lang="zh-TW"';
+                        changesMade = true;
+                    }
+
+                    functional += `\n<${tagName}${attrs}>`;
+                    display += `\n<${tagName}${attrs.replace('lang="zh-TW"', '<span class="optimized-code">lang="zh-TW"</span>')}>`;
+                    
+                    if (tagName === 'head') {
+                        let headInserts = '', displayHeadInserts = '';
+                        const addTag = (tag) => {
+                            headInserts += `\n  ${tag}`;
+                            displayHeadInserts += `\n  <span class="optimized-code">${escapeHtml(tag)}</span>`;
+                            changesMade = true;
+                        };
+                        if (!doc.querySelector('meta[charset]')) { addTag('<meta charset="UTF-8">'); }
+                        if (!doc.querySelector('meta[name="viewport"]')) { addTag('<meta name="viewport" content="width=device-width, initial-scale=1.0">'); }
+                        if (!doc.querySelector('title') && !annotations.has(node.querySelector('title'))) { addTag('<title>網站標題</title>'); }
+                        if (!doc.querySelector('meta[name="description"]') && !annotations.has(node.querySelector('meta[name="description"]'))) { addTag('<meta name="description" content="網站描述">'); }
+                        if (!doc.querySelector('link[rel="canonical"]')) { addTag('<link rel="canonical" href="在此處貼上主要網址">'); }
+                        if (!doc.querySelector('meta[property="og:title"]')) { addTag('<meta property="og:title" content="標題">\n  <meta property="og:description" content="描述">'); }
+                        
+                        functional += headInserts;
+                        display += displayHeadInserts;
+                    }
+                    
+                    for (const child of node.childNodes) {
+                        const rebuilt = rebuildNode(child);
+                        functional += rebuilt.functional;
+                        display += rebuilt.display;
+                    }
+
+                    if (!['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr'].includes(tagName)) {
+                        functional += `</${tagName}>`;
+                        display += `&lt;/${tagName}&gt;`;
+                    }
+                } 
+                else if (node.nodeType === Node.TEXT_NODE) {
+                    functional += node.textContent;
+                    display += escapeHtml(node.textContent);
+                } else if (node.nodeType === Node.COMMENT_NODE) {
+                    functional += `<!--${node.nodeValue}-->`;
+                    display += `&lt;!--${escapeHtml(node.nodeValue)}--&gt;`;
+                }
+                
+                return { functional, display };
+            };
+
+            const doctype = doc.doctype ? `<!DOCTYPE ${doc.doctype.name}>` : '<!DOCTYPE html>';
+            const rebuilt = rebuildNode(doc.documentElement);
+
+            if (changesMade) {
+                htmlCode = doctype + rebuilt.functional;
+                document.getElementById('outputCode').innerHTML = escapeHtml(doctype) + rebuilt.display;
+                analyzeHTML(htmlCode, null);
+                alert('✨ 優化完成！\n\n已自動補上基礎標籤，並在需要手動修改的地方加入了註解建議（標示為紅色）。');
+            } else {
+                alert('✅ 基礎標籤檢查完畢！\n\n您的程式碼已包含所有可「自動添加」的基礎標籤。\n對於「待改善」的項目，仍需您參考建議手動進行調整。');
+            }
+        }
+
+        function downloadCode() {
+            if (!htmlCode) { alert('沒有內容'); return; }
+            const blob = new Blob([htmlCode], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = 'optimized.html';
+            a.click(); URL.revokeObjectURL(url);
+        }
+        
+        function copyFullCode() {
+            if (!htmlCode) { alert('沒有內容可複製'); return; }
+            navigator.clipboard.writeText(htmlCode).then(() => {
+                alert('✅ 優化後的完整代碼已複製到剪貼簿！');
+            }, () => {
+                alert('❌ 複製失敗，您的瀏覽器可能不支援此功能。');
+            });
+        }
+
+        function downloadSuggestions() {
+            if (checkData.length === 0) { 
+                alert('❌ 沒有分析數據，請先進行分析'); 
+                return; 
+            }
+
+            let goodCount = 0, warningCount = 0, errorCount = 0;
+            checkData.forEach(item => {
+                if (item.type !== 'check') return;
+                if (item.status === 'good') goodCount++;
+                else if (item.status === 'warning') warningCount++;
+                else if (item.status === 'error') errorCount++;
+            });
+            const totalCount = goodCount + warningCount + errorCount;
+            const score = totalCount > 0 ? Math.round((goodCount / totalCount) * 100) : 0;
+
+            const reportHTML = `<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEO & GEO 優化建議報告 - ${new Date().toLocaleDateString('zh-TW')}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+            background: #f5f7fa;
+            padding: 40px 20px;
+            line-height: 1.8;
+        }
+        .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); overflow: hidden; }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+        }
+        .header h1 { font-size: 2.5rem; margin-bottom: 15px; }
+        .header .date { font-size: 1rem; opacity: 0.9; }
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 40px;
+            background: #f8f9fa;
+        }
+        .summary-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        .summary-card h2 { font-size: 3rem; margin-bottom: 10px; }
+        .summary-card.score h2 { color: ${score >= 80 ? '#10b981' : score >= 60 ? '#f59e0b' : '#ef4444'}; }
+        .summary-card.good h2 { color: #10b981; }
+        .summary-card.warning h2 { color: #f59e0b; }
+        .summary-card.error h2 { color: #ef4444; }
+        .summary-card p { color: #6b7280; font-size: 1rem; }
+        .content { padding: 40px; }
+        .section-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            margin: 40px 0 20px 0;
+            border-radius: 10px;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        .subsection-header {
+            background: #f3f4f6;
+            padding: 15px 20px;
+            margin: 30px 0 15px 0;
+            border-radius: 8px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #374151;
+            border-left: 5px solid #667eea;
+        }
+        .check-item {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 2px solid #e5e7eb;
+            page-break-inside: avoid;
+        }
+        .check-item.good {
+            border-left: 5px solid #10b981;
+            background: #f0fdf4;
+        }
+        .check-item.warning {
+            border-left: 5px solid #f59e0b;
+            background: #fffbeb;
+        }
+        .check-item.error {
+            border-left: 5px solid #ef4444;
+            background: #fef2f2;
+        }
+        .check-title {
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 12px;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        .good .status-badge { background: #10b981; color: white; }
+        .warning .status-badge { background: #f59e0b; color: white; }
+        .error .status-badge { background: #ef4444; color: white; }
+        .check-value {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 12px 0;
+            font-family: monospace;
+            font-size: 0.95rem;
+            word-break: break-all;
+            border: 1px solid #e5e7eb;
+        }
+        .check-info {
+            color: #6b7280;
+            font-size: 1rem;
+            margin: 10px 0;
+            padding-left: 5px;
+        }
+        .check-suggestion {
+            background: #eff6ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            color: #1e40af;
+            font-size: 1rem;
+            border-left: 4px solid #3b82f6;
+        }
+        .check-suggestion strong { color: #1e3a8a; }
+        .code-box {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            border: 1px solid #334155;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 30px 40px;
+            text-align: center;
+            color: #6b7280;
+            border-top: 2px solid #e5e7eb;
+        }
+        .footer p { margin: 5px 0; }
+        .print-note {
+            background: #fef3c7;
+            border: 2px solid #fbbf24;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            text-align: center;
+        }
+        @media print {
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; }
+            .print-note { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 SEO & GEO 優化建議報告</h1>
+            <p class="date">生成日期：${new Date().toLocaleString('zh-TW', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            })}</p>
+        </div>
+
+        <div class="summary">
+            <div class="summary-card score">
+                <h2>${score}%</h2>
+                <p>整體評分</p>
+            </div>
+            <div class="summary-card good">
+                <h2>${goodCount}</h2>
+                <p>✅ 優秀項目</p>
+            </div>
+            <div class="summary-card warning">
+                <h2>${warningCount}</h2>
+                <p>⚠️ 待改善項目</p>
+            </div>
+            <div class="summary-card error">
+                <h2>${errorCount}</h2>
+                <p>❌ 需處理項目</p>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="print-note">
+                <strong>💡 提示：</strong>您可以按 Ctrl+P (Windows) 或 Cmd+P (Mac) 列印或儲存為 PDF
+            </div>
+
+            ${generateCheckItemsHTML()}
+        </div>
+
+        <div class="footer">
+            <p><strong>SEO & GEO 完整優化檢查工具</strong></p>
+            <p>本報告由系統自動生成，共檢查 ${totalCount} 個項目</p>
+            <p>建議定期重新檢查以保持網站優化狀態</p>
+        </div>
     </div>
-  </div>
-</div>
-
-<div class="fab">
-  <button id="toggleAll" class="btn secondary">收合 所有範例</button>
-  <button id="backTop" class="btn ghost" onclick="window.scrollTo({top:0,behavior:'smooth'})">回到頂端 ⤴</button>
-</div>
-
-<script>
-/* ====== DOM 快捷 ====== */
-const $ = s => document.querySelector(s);
-const urlInput = $('#urlInput');
-const analyzeBtn = $('#analyzeBtn');
-const toggleRawBtn = $('#toggleRawBtn');
-const rawHtml = $('#rawHtml');
-
-const results = $('#results');
-const techItems = $('#techItems');
-const onItems = $('#onItems');
-const offItems = $('#offItems');
-const geoItems = $('#geoItems');
-
-const techSamples = $('#techSamples');
-const onSamples = $('#onSamples');
-const offSamples = $('#offSamples');
-const geoSamples = $('#geoSamples');
-
-const extLinks = $('#extLinks');
-const dlBox = $('#downloadBox');
-const dlJsonBtn = $('#dlJson');
-const scanTime = $('#scanTime');
-const scanUrl = $('#scanUrl');
-const statusBox = $('#status');
-
-const techScoreEl = $('#techScore');
-const onScoreEl = $('#onScore');
-const offScoreEl = $('#offScore');
-const geoScoreEl = $('#geoScore');
-
-const toggleAllBtn = $('#toggleAll');
-
-toggleRawBtn.addEventListener('click', ()=>{
-  rawHtml.style.display = rawHtml.style.display === 'none' || rawHtml.style.display === '' ? 'block' : 'none';
-  toggleRawBtn.textContent = rawHtml.style.display === 'block' ? '隱藏原始碼欄位' : '貼上原始碼';
-});
-
-function norm(u){
-  try{ let x=u.trim(); if(!/^https?:\/\//i.test(x)) x='https://'+x; return new URL(x).toString(); }
-  catch(e){ return null; }
-}
-
-function itemRow(level, html){
-  const wrap=document.createElement('div'); wrap.className=`item ${level}`;
-  const icon=document.createElement('div'); icon.className='icon'; icon.textContent=level==='ok'?'✓':(level==='bad'?'✖':'⚠');
-  const text=document.createElement('div'); text.className='text'; text.innerHTML=html;
-  wrap.appendChild(icon); wrap.appendChild(text); return wrap;
-}
-function addItem(container, text){
-  const level = text.startsWith('✅')?'ok':(text.startsWith('❌')?'bad':'warn');
-  container.appendChild(itemRow(level, text));
-}
-function chip(text){ const s=document.createElement('span'); s.className='chip'; s.textContent=text; return s; }
-
-/* ====== 開合控制 ====== */
-function setSampleOpen(preEl, open){
-  preEl.style.display = open ? 'block' : 'none';
-  preEl.dataset.open = open ? '1' : '0';
-  const toggleBtn = preEl.closest('.sample-card')?.querySelector('.toggle-btn');
-  if(toggleBtn){ toggleBtn.textContent = open ? '收合' : '展開'; }
-}
-function makeSampleCard({title, note, code, tags=[]}){
-  const wrap=document.createElement('div'); wrap.className='sample-card';
-  const head=document.createElement('div'); head.className='sample-head';
-  const ttl=document.createElement('div'); ttl.className='sample-title'; ttl.textContent=title;
-  const ctrls=document.createElement('div'); ctrls.className='sample-ctrls';
-  const btnCopy=document.createElement('button'); btnCopy.className='copy-btn'; btnCopy.textContent='複製';
-  const btnToggle=document.createElement('button'); btnToggle.className='toggle-btn'; btnToggle.textContent='收合';
-  ctrls.appendChild(btnCopy); ctrls.appendChild(btnToggle); head.appendChild(ttl); head.appendChild(ctrls);
-
-  const tagsEl=document.createElement('div'); tagsEl.className='sample-meta';
-  tags.forEach(t=>{ const span=document.createElement('span'); span.className='tag'; span.textContent=t; tagsEl.appendChild(span); });
-
-  const noteEl=document.createElement('div'); noteEl.className='sample-note'; noteEl.textContent=note||'將此片段貼入對應位置即可。';
-
-  const pre=document.createElement('pre'); const codeEl=document.createElement('code'); codeEl.textContent=code; pre.appendChild(codeEl);
-  setSampleOpen(pre, true);
-
-  btnCopy.addEventListener('click', ()=>{ navigator.clipboard.writeText(code).then(()=>{ btnCopy.textContent='已複製'; setTimeout(()=>btnCopy.textContent='複製',1500); }); });
-  btnToggle.addEventListener('click', ()=>{ const isOpen=pre.dataset.open==='1'; setSampleOpen(pre, !isOpen); });
-
-  wrap.appendChild(head); if(tags.length) wrap.appendChild(tagsEl); wrap.appendChild(noteEl); wrap.appendChild(pre); return wrap;
-}
-function renderSamplesTo(targetEl, samples){ samples.forEach(s=> targetEl.appendChild(makeSampleCard(s))); }
-
-/* ====== 抓取 ====== */
-async function fetchWithFallbacks(targetUrl){
-  try{ const r=await fetch(targetUrl,{mode:'cors'}); if(r.ok) return await r.text(); }catch(e){}
-  const proxies=[`https://r.jina.ai/http://`+targetUrl.replace(/^https?:\/\//,''), `https://r.jina.ai/`+targetUrl];
-  for(const p of proxies){ try{ const r=await fetch(p); if(r.ok) return await r.text(); }catch(e){} }
-  throw new Error('抓取失敗。可改用「貼上原始碼」模式。');
-}
-
-/* ====== 核心分析 ====== */
-function analyzeHTML(html, baseUrl){
-  const parser=new DOMParser(); const doc=parser.parseFromString(html,'text/html');
-
-  const rep={ url:baseUrl, time:new Date().toISOString(), summary:{}, technical:[], onpage:[], offpage:[], geo:[], scores:{technical:0,onpage:0,offpage:0,geo:0}, samples:{tech:[], on:[], off:[], geo:[]} };
-
-  const get = sel => doc.querySelector(sel);
-  const getAll = sel => Array.from(doc.querySelectorAll(sel));
-
-  const title=(doc.title || (get('title')?.textContent ?? '')).trim();
-  const metaDesc=get('meta[name="description"]')?.getAttribute('content')||'';
-  const metaRobots=get('meta[name="robots"]')?.getAttribute('content')||'';
-  const canon=get('link[rel="canonical"]')?.getAttribute('href')||'';
-  const ogTitle=get('meta[property="og:title"]')?.getAttribute('content')||'';
-  const ogDesc=get('meta[property="og:description"]')?.getAttribute('content')||'';
-  const ogImg=get('meta[property="og:image"]')?.getAttribute('content')||'';
-  const twCard=get('meta[name="twitter:card"]')?.getAttribute('content')||'';
-  const twImg=get('meta[name="twitter:image"], meta[property="twitter:image"]')?.getAttribute('content')||'';
-  const h1s=getAll('h1'); const imgs=getAll('img'); const links=getAll('a[href]');
-  const langAttr=doc.documentElement.getAttribute('lang')||'';
-  const viewport=get('meta[name="viewport"]')?.getAttribute('content')||'';
-  const gVerify=get('meta[name="google-site-verification"]')?.getAttribute('content')||'';
-  const scripts=getAll('script');
-  const hasGA4=scripts.some(s=>/gtag\(\s*['"]config['"]\s*,\s*['"]G-[A-Z0-9]+['"]\s*\)/.test(s.textContent||''));
-  const hasUA=scripts.some(s=>/ga\('create'|UA-\d+-\d+'?/.test(s.textContent||''));
-  const jsonLd=getAll('script[type="application/ld+json"]').map(s=>{ try{ return JSON.parse(s.textContent); }catch(e){ return null; } }).filter(Boolean);
-  const hreflangs=getAll('link[rel="alternate"][hreflang]');
-
-  const host=safeHost(baseUrl); const urlOrigin=safeOrigin(baseUrl)||'https://www.example.com'; const pageUrl=baseUrl||'https://www.example.com/your-page';
-
-  const pushFix=(bucket,title,code,note='',tags=[])=>{
-    const fix={title,code,note,tags};
-    (bucket==='tech'?rep.samples.tech:bucket==='on'?rep.samples.on:bucket==='geo'?rep.samples.geo:rep.samples.off).push(fix);
-  };
-
-  /* --- Technical / On-Page（和前版相同，節錄必要加分） --- */
-  if(/noindex/i.test(metaRobots)){ rep.technical.push('❌ 偵測到 <span class="mono">meta[name="robots"]</span>：noindex。'); pushFix('on','移除 noindex',`<meta name="robots" content="index,follow">`,'僅不需索引的頁面才用 noindex。',['robots']); }
-  else { rep.technical.push('✅ 未發現 noindex，理論上可被索引。'); rep.scores.technical += 1; }
-
-  if(!title){ rep.onpage.push('❌ 缺少 <span class="mono">&lt;title&gt;</span>。'); pushFix('on','新增 <title>',`<title>主關鍵字｜價值主張與次關鍵字（35–60字內）</title>`,'關鍵字靠前，後段加品牌。',['title']); }
-  else { const len=[...title].length; if(len<10||len>60){ rep.onpage.push(`⚠️ <span class="mono">&lt;title&gt;</span> 長度為 ${len}。`); pushFix('on','調整長度',`<title>${title.slice(0,56)}｜你的品牌</title>`,`避免被截斷。`,['title']); } else { rep.onpage.push('✅ <span class="mono">&lt;title&gt;</span> 長度合理。'); rep.scores.onpage += 1; } }
-
-  if(!metaDesc){ rep.onpage.push('❌ 缺少 <span class="mono">meta description</span>。'); pushFix('on','新增 description',`<meta name="description" content="80–160字內，說清楚解決問題、誰適用與行動呼籲。">`,'提升 CTR。',['description']); }
-  else { const len=[...metaDesc].length; if(len<50||len>160){ rep.onpage.push(`⚠️ description 長度為 ${len}。`); pushFix('on','優化 description',`<meta name="description" content="${metaDesc.slice(0,156)}">`,'壓到 160 字內。',['description']); } else { rep.onpage.push('✅ description 長度合理。'); rep.scores.onpage += 1; } }
-
-  if(!canon){ rep.technical.push('⚠️ 缺少 <span class="mono">canonical</span>。'); pushFix('tech','新增 canonical',`<link rel="canonical" href="${pageUrl}">`,'指向正規 URL。',['canonical']); }
-  else { rep.technical.push(`✅ 發現 canonical：<span class="mono">${escapeHtml(canon)}</span>。`); rep.scores.technical += 1; }
-
-  /* --- GEO：Generative Engine Optimization 檢查 --- */
-  const bodyText=(doc.body?.innerText||'').replace(/\s+/g,' ').trim();
-  const h2h3 = getAll('h2, h3');
-  const h2h3Count = h2h3.length;
-  const h2h3WithId = h2h3.filter(h=>h.id).length;
-
-  // 1) FAQ 抽取度
-  const hasFAQSchema = jsonLd.some(o=>hasType(o,'FAQPage'));
-  const faqHeading = h2h3.some(h=>/FAQ|常見問題|Q&A|問與答/i.test(h.textContent||''));
-  if(hasFAQSchema || faqHeading){ rep.geo.push('✅ FAQ 區塊/FAQPage 已設置（有助 LLM 以 Q→A 直接抽取）。'); rep.scores.geo += 1; }
-  else{
-    rep.geo.push('⚠️ 未偵測到 FAQ 區塊或 FAQPage JSON-LD。');
-    pushFix('geo','FAQPage JSON-LD（可直接抽取）',`<script type="application/ld+json">
-{
- "@context":"https://schema.org",
- "@type":"FAQPage",
- "mainEntity":[
-  {"@type":"Question","name":"你的產品適用哪些情境？","acceptedAnswer":{"@type":"Answer","text":"列出 3–5 個常見情境與限制。"}},
-  {"@type":"Question","name":"與競品差異？","acceptedAnswer":{"@type":"Answer","text":"用表格說明三項核心差異與誰該用。"}}
- ]
-}
-<\/script>`,'同頁也放可見的 FAQ 區塊（details/summary 或列表）。',['FAQ','JSON-LD']);
-  }
-
-  // 2) TL;DR / 重點整理
-  const hasTLDR = /TL;?DR|重點整理|快速總結|摘要/i.test(bodyText);
-  if(hasTLDR){ rep.geo.push('✅ 存在 TL;DR / 重點整理區塊。'); rep.scores.geo += 1; }
-  else{
-    rep.geo.push('⚠️ 未偵測到 TL;DR / 重點整理（有助零點擊直接回答）。');
-    pushFix('geo','加入 TL;DR（可見 HTML）',`<section class="tldr" aria-label="重點整理">
-  <h2>TL;DR 重點整理</h2>
-  <ul>
-    <li>一句話定義：⋯⋯</li>
-    <li>三個關鍵步驟：⋯⋯</li>
-    <li>常見坑與避免方式：⋯⋯</li>
-  </ul>
-</section>`,'放在文首或 H2 之前，方便 LLM 擷取關鍵點。',['摘要','零點擊']);
-  }
-
-  // 3) References / 出處可驗證
-  const refsHeading = h2h3.some(h=>/參考資料|References|來源|引註/i.test(h.textContent||''));
-  const extLinks = getAll('a[href]').filter(a=>{ try{ const u=new URL(a.href, baseUrl); return u.host && u.host!==host; }catch(e){return false;} });
-  const authLinks = extLinks.filter(a=>/(\.gov|\.edu|wikipedia\.org|who\.int|doi\.org)/i.test(a.href||'')).length;
-  if(refsHeading && authLinks>0){ rep.geo.push(`✅ 參考資料區塊且含權威外連（${authLinks} 筆）。`); rep.scores.geo += 1; }
-  else{
-    rep.geo.push('⚠️ 未見「參考資料」區塊或缺乏權威外連（gov/edu/Wikipedia/DOI）。');
-    pushFix('geo','加入 References 區塊（含權威出處）',`<section id="references">
-  <h2>參考資料</h2>
-  <ol>
-    <li><a href="https://en.wikipedia.org/wiki/..." rel="noopener">概念維基條目</a></li>
-    <li><a href="https://doi.org/10.xxxx/xxxxx" rel="noopener">同行評審論文（DOI）</a></li>
-    <li><a href="https://www.gov.tw/..." rel="noopener">政府開放資料</a></li>
-  </ol>
-</section>`,'LLM 喜歡「可驗證」的陳述與連結。',['References','E-E-A-T']);
-  }
-
-  // 4) Author / 更新日期 / Article schema
-  const hasAuthorMeta = !!get('meta[name="author"]');
-  const hasUpdatedMeta = !!get('meta[property="article:modified_time"], meta[name="last-modified"], time[datetime]');
-  const hasArticleSchema = jsonLd.some(o=>hasType(o,'Article') || hasType(o,'BlogPosting'));
-  if(hasAuthorMeta && hasUpdatedMeta && hasArticleSchema){ rep.geo.push('✅ 有作者/更新日期與 Article 類 schema。'); rep.scores.geo += 1; }
-  else{
-    rep.geo.push('⚠️ 建議補充作者、更新日期與 Article/BlogPosting schema。');
-    pushFix('geo','Article + Author（JSON-LD）',`<script type="application/ld+json">
-{
- "@context":"https://schema.org",
- "@type":"Article",
- "headline":"此頁標題",
- "datePublished":"2025-01-01",
- "dateModified":"2025-02-01",
- "author":{"@type":"Person","name":"作者名","url":"${urlOrigin}/about/"},
- "publisher":{"@type":"Organization","name":"你的品牌","logo":{"@type":"ImageObject","url":"${urlOrigin}/assets/logo.png"}}
-}
-<\/script>`,'頁面可見處也放作者小卡＋更新日期。',['E-E-A-T','Author']);
-  }
-
-  // 5) Speakable（可朗讀片段，利語音/摘要）
-  const hasSpeakable = jsonLd.some(o=>o.speakable);
-  if(hasSpeakable){ rep.geo.push('✅ 存在 speakable 片段。'); rep.scores.geo += 1; }
-  else{
-    rep.geo.push('ℹ️ 可選：加入 speakable 片段，利語音與摘要。');
-    pushFix('geo','Speakable（JSON-LD）',`<script type="application/ld+json">
-{
- "@context":"https://schema.org",
- "@type":"WebPage",
- "speakable":{
-   "@type":"SpeakableSpecification",
-   "cssSelector":[".tldr","h1"]
- }
-}
-<\/script>`,'將最關鍵的定義/結論設為 speakable。',['speakable']);
-  }
-
-  // 6) HowTo（步驟型內容）
-  const hasHowTo = jsonLd.some(o=>hasType(o,'HowTo'));
-  const hasStepsText = /步驟|做法|How to|教程|教學/i.test(bodyText);
-  if(hasHowTo || hasStepsText){ rep.geo.push('✅ 偵測到 HowTo 型內容或步驟文字。'); rep.scores.geo += 1; }
-  else{
-    rep.geo.push('ℹ️ 若為流程/教學，建議補 HowTo 結構化資料。');
-    pushFix('geo','HowTo（JSON-LD）',`<script type="application/ld+json">
-{
- "@context":"https://schema.org",
- "@type":"HowTo",
- "name":"如何完成 X",
- "step":[
-  {"@type":"HowToStep","name":"步驟一","text":"…"},
-  {"@type":"HowToStep","name":"步驟二","text":"…"}
- ]
-}
-<\/script>`,'同頁用 <ol> 條列步驟，便於抽取。',['HowTo']);
-  }
-
-  // 7) 可抽取的表格/要點
-  const tables = getAll('table').length;
-  const hasBullets = getAll('ul li, ol li').length>0;
-  if(tables>0 || hasBullets){ rep.geo.push('✅ 有表格/條列要點，便於 LLM 摘要。'); rep.scores.geo += 1; }
-  else{
-    rep.geo.push('⚠️ 缺少表格或條列要點（建議提供可抽取的結構）。');
-    pushFix('geo','加入「關鍵事實表」',`<table class="facts">
-  <thead><tr><th>要點</th><th>數值/結論</th><th>來源</th></tr></thead>
-  <tbody>
-    <tr><td>定義</td><td>一句話定義 …</td><td><a href="#references">Ref #1</a></td></tr>
-    <tr><td>主要差異</td><td>A vs B 的 3 點差異</td><td><a href="#references">Ref #2</a></td></tr>
-  </tbody>
-</table>`,'事實表格可被直接抽取成 key-value。',['表格','可抽取']);
-  }
-
-  // 8) 錨點/目錄（便於定位段落）
-  const hasTOC = getAll('a[href^="#"]').length>5;
-  if(h2h3WithId>0 && hasTOC){ rep.geo.push('✅ 有錨點與目錄，利段落定位。'); rep.scores.geo += 1; }
-  else{
-    rep.geo.push('ℹ️ 建議為 H2/H3 加 id 並提供「頁面目錄」。');
-    pushFix('geo','自動目錄＋錨點範例',`<nav class="toc" aria-label="頁面目錄">
-  <ol>
-    <li><a href="#def">什麼是 X</a></li>
-    <li><a href="#steps">如何操作</a></li>
-    <li><a href="#faq">常見問題</a></li>
-  </ol>
-</nav>
-<h2 id="def">什麼是 X</h2>
-<h2 id="steps">如何操作</h2>
-<h2 id="faq">常見問題</h2>`,'確保 H2/H3 都有穩定的 id。',['錨點','目錄']);
-  }
-
-  // 9) 圖片描述/圖說（利視覺摘要）
-  const hasFigcaption = getAll('figure figcaption').length>0;
-  if(hasFigcaption){ rep.geo.push('✅ 圖片具 figcaption（圖說可被引用）。'); rep.scores.geo += 1; }
-  else if(getAll('img').length>0){
-    rep.geo.push('ℹ️ 建議為重要圖片加上 <figure><figcaption>。');
-    pushFix('geo','帶圖說的圖像區塊',`<figure>
-  <img src="/assets/og/diagram.webp" alt="X 與 Y 的流程圖">
-  <figcaption>圖 1：X 與 Y 的流程對照，重點是 …</figcaption>
-</figure>`,'圖說提供可引用的一句話重點。',['圖說']);
-  }
-
-  // 10) 內容密度（過長段落不利抽取）
-  const paragraphs = getAll('p').map(p=> (p.textContent||'').trim()).filter(t=>t);
-  const avgLen = paragraphs.length? Math.round(paragraphs.join(' ').length/paragraphs.length) : 0;
-  if(avgLen && avgLen<=380){ rep.geo.push(`✅ 段落平均長度 ${avgLen} 字，利抽取。`); rep.scores.geo += 1; }
-  else if(avgLen){
-    rep.geo.push(`⚠️ 段落平均長度約 ${avgLen} 字，建議每段 80–300 字以內。`);
-    pushFix('geo','重構為「小段落＋小標題」',`<h3>小節標題（含關鍵詞）</h3>
-<p>80–150字：先給答案，再補理由。</p>
-<ul><li>要點 1</li><li>要點 2</li><li>要點 3</li></ul>`,'提升語義密度與抽取友善度。',['可讀性']);
-  } else {
-    rep.geo.push('ℹ️ 未能估算段落長度（頁面 p 標籤偏少）。');
-  }
-
-  /* --- Off-page：保留 --- */
-  rep.offpage.push('📌 建立可被引用的研究/數據頁，作為自然外鏈磁鐵。');
-  pushFix('off','可被引用的數據頁模板',`<article class="report">
-  <h1>2025 業界基準報告：主要指標與趨勢</h1>
-  <p>摘要：本報告彙整 X 家廠商 / Y 份案例，提供可引用之數據圖表。</p>
-  <h2>重點發現</h2>
-  <ul><li>指標 A 中位數：42%</li><li>指標 B 平均成長：+18%</li></ul>
-  <h2>圖表與方法</h2>
-  <img src="/reports/2025/fig-1.webp" alt="指標A 分佈圖">
-  <p>引用格式：品牌名（2025），《2025 業界基準報告》，頁碼/圖號。</p>
-</article>`,'發布時搭配媒體稿/社群貼文以提高引用率。',['PR','外鏈']);
-
-  /* --- robots / sitemap（非阻塞） --- */
-  const u=new URL(baseUrl); rep.robots={}; rep.sitemap={};
-  checkRobotsAndSitemap(u).then(({robotsInfo, sitemapInfo})=>{
-    rep.robots=robotsInfo; rep.sitemap=sitemapInfo;
-    appendRobotsSitemapToUI(robotsInfo, sitemapInfo, pushFix);
-  });
-
-  /* --- 分數 --- */
-  const techScore=Math.min(5,rep.scores.technical);
-  const onScore=Math.min(6,rep.scores.onpage);
-  const offScore=Math.min(3,rep.scores.offpage);
-  const geoScore=Math.min(10,rep.scores.geo); // GEO 指標較多，滿分 10
-  rep.summary={technical:techScore,onpage:onScore,offpage:offScore,geo:geoScore};
-
-  return rep;
-}
-
-/* ====== 小工具 ====== */
-function hasType(node, type){
-  if(!node) return false;
-  const t=node['@type']; if(typeof t==='string') return t===type;
-  if(Array.isArray(t)) return t.includes(type);
-  return false;
-}
-function collectTypes(node){
-  let out=[]; if(Array.isArray(node)){ node.forEach(n=>out=out.concat(collectTypes(n))); return out; }
-  if(node && typeof node==='object'){
-    const t=node['@type']; if(typeof t==='string') out.push(t); else if(Array.isArray(t)) out=out.concat(t.filter(x=>typeof x==='string'));
-    for(const k of Object.keys(node)){ out=out.concat(collectTypes(node[k])); }
-  } return out;
-}
-function toAbs(href, base){ try{ return new URL(href, base).toString(); }catch(e){ return href; } }
-function safeHost(u){ try{ return new URL(u).host; }catch(e){ return ''; } }
-function safeOrigin(u){ try{ return new URL(u).origin; }catch(e){ return ''; } }
-function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
-
-/* ====== robots / sitemap ====== */
-async function checkRobotsAndSitemap(u){
-  const robotsUrl = `${u.origin}/robots.txt`;
-  const sitemapUrl = `${u.origin}/sitemap.xml`;
-  const robotsInfo = {url: robotsUrl, ok:false, disallowAll:false, hasSitemap:false, sitemaps:[]};
-  const sitemapInfo = {url: sitemapUrl, ok:false};
-
-  try{
-    const r = await fetch(`https://r.jina.ai/${robotsUrl}`);
-    if(r.ok){
-      const txt = await r.text();
-      robotsInfo.ok = true; robotsInfo.text = txt;
-      const disall = /Disallow:\s*\/\s*$/im.test(txt);
-      robotsInfo.disallowAll = disall;
-      const sitemaps = [...txt.matchAll(/Sitemap:\s*(.+)\s*$/img)].map(m=>m[1].trim());
-      robotsInfo.hasSitemap = sitemaps.length>0; robotsInfo.sitemaps = sitemaps;
-    }
-  }catch(e){/*ignore*/}
-
-  try{ const s = await fetch(`https://r.jina.ai/${sitemapUrl}`); sitemapInfo.ok = s.ok; }catch(e){/*ignore*/}
-
-  return {robotsInfo, sitemapInfo};
-}
-
-function appendRobotsSitemapToUI(robotsInfo, sitemapInfo, pushFix){
-  if(robotsInfo.ok){
-    addItem(techItems, `✅ 讀取 robots.txt 成功：<a class="links" href="${robotsInfo.url}" target="_blank">${robotsInfo.url}</a>`);
-    if(robotsInfo.disallowAll){
-      addItem(techItems, '❌ robots.txt 全站 Disallow。請立刻修正。');
-      pushFix('tech','修正 robots.txt（允許索引＋宣告 Sitemap）',`User-agent: *
-Disallow:
-
-Sitemap: ${safeOrigin(robotsInfo.url)}/sitemap.xml`,'移除全站 Disallow 並在底部宣告 Sitemap。',['robots.txt']);
-    }else{
-      addItem(techItems, 'ℹ️ robots.txt 內容已讀取。');
-    }
-    if(robotsInfo.hasSitemap){
-      addItem(techItems, `✅ robots.txt 宣告 Sitemap：<span class="mono">${robotsInfo.sitemaps.slice(0,3).join(', ')}</span>${robotsInfo.sitemaps.length>3?' …':''}`);
-    }else{
-      addItem(techItems, '⚠️ robots.txt 未宣告 Sitemap。');
-      pushFix('tech','在 robots.txt 宣告 Sitemap',`User-agent: *
-Allow: /
-
-Sitemap: ${safeOrigin(robotsInfo.url)}/sitemap.xml`,'幫助搜尋引擎更快發現站點地圖。',['robots.txt','Sitemap']);
-    }
-  }else{
-    addItem(techItems, '⚠️ 無法讀取 robots.txt（可能不存在）。建議建立並開放必要路徑。');
-    pushFix('tech','建立 robots.txt',`User-agent: *
-Disallow: /admin/
-Disallow: /cart/
-Allow: /
-
-Sitemap: ${safeOrigin(location.href) || 'https://www.example.com'}/sitemap.xml`,'依實際後台/隱私路徑調整 Disallow。',['robots.txt']);
-  }
-
-  if(sitemapInfo.ok){
-    addItem(techItems, `✅ 偵測到預設 <a class="links" href="${sitemapInfo.url}" target="_blank">sitemap.xml</a>。`);
-  }else{
-    addItem(techItems, '⚠️ 未偵測到預設 <span class="mono">/sitemap.xml</span>。');
-    pushFix('tech','靜態 sitemap 範例（XML）',`<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>${safeOrigin(sitemapInfo.url) || 'https://www.example.com'}/</loc><lastmod>${new Date().toISOString().slice(0,10)}</lastmod><priority>1.0</priority></url>
-  <url><loc>${safeOrigin(sitemapInfo.url) || 'https://www.example.com'}/about/</loc><lastmod>${new Date().toISOString().slice(0,10)}</lastmod><priority>0.8</priority></url>
-</urlset>`,'動態站請由後端定期產生與更新 lastmod。',['Sitemap']);
-  }
-
-  renderSamples();
-}
-
-/* ====== 渲染報告 ====== */
-function renderReport(rep){
-  results.style.display = 'grid';
-  dlBox.style.display = 'flex';
-  statusBox.innerHTML = '';
-  techItems.innerHTML = onItems.innerHTML = offItems.innerHTML = '';
-  geoItems.innerHTML = '';
-  techSamples.innerHTML = onSamples.innerHTML = offSamples.innerHTML = geoSamples.innerHTML = '';
-
-  rep.technical.forEach(t => addItem(techItems, t));
-  rep.onpage.forEach(t => addItem(onItems, t));
-  rep.offpage.forEach(t => addItem(offItems, t));
-  rep.geo.forEach(t => addItem(geoItems, t));
-
-  const enc = encodeURIComponent(rep.url);
-  extLinks.innerHTML = `
-    <a target="_blank" href="https://pagespeed.web.dev/report?url=${enc}">PageSpeed（CWV）</a>
-    <a target="_blank" href="https://search.google.com/test/rich-results?url=${enc}">Rich Results 測試</a>
-    <a target="_blank" href="view-source:${rep.url}">檢視原始碼</a>
-  `;
-
-  window.__report = rep; renderSamples();
-
-  scanTime.textContent = new Date(rep.time).toLocaleString();
-  scanUrl.textContent = rep.url;
-
-  techScoreEl.textContent = `分數：${rep.summary.technical}/5`;
-  onScoreEl.textContent = `分數：${rep.summary.onpage}/6`;
-  geoScoreEl.textContent = `分數：${rep.summary.geo}/10`;
-  offScoreEl.textContent = `分數：${rep.summary.offpage}/3`;
-
-  dlJsonBtn.onclick = ()=>{
-    const blob = new Blob([JSON.stringify(rep, null, 2)], {type:'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = `seo-geo-audit-${(new URL(rep.url)).host}.json`;
-    document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url), 5000);
-  };
-
-  toggleAllBtn.textContent = '收合 所有範例';
-}
-
-function renderSamples(){
-  const rep = window.__report; if(!rep) return;
-  renderSamplesTo(techSamples, rep.samples.tech);
-  renderSamplesTo(onSamples, rep.samples.on);
-  renderSamplesTo(geoSamples, rep.samples.geo);
-  renderSamplesTo(offSamples, rep.samples.off);
-}
-
-/* ====== 一鍵展開/收合 ====== */
-toggleAllBtn.addEventListener('click', ()=>{
-  const pres = Array.from(document.querySelectorAll('.sample-card pre'));
-  if(pres.length === 0) return;
-  const anyOpen = pres.some(p => p.dataset.open === '1' || p.style.display === '' || p.style.display === 'block');
-  const targetOpen = !anyOpen;
-  pres.forEach(p => setSampleOpen(p, targetOpen));
-  toggleAllBtn.textContent = targetOpen ? '收合 所有範例' : '展開 所有範例';
-});
-
-/* ====== 觸發分析 ====== */
-analyzeBtn.addEventListener('click', async ()=>{
-  const u = norm(urlInput.value || '');
-  const pasted = rawHtml.value.trim();
-
-  statusBox.innerHTML = '';
-  results.style.display = 'none';
-  dlBox.style.display = 'none';
-  techItems.innerHTML = onItems.innerHTML = offItems.innerHTML = geoItems.innerHTML = '';
-  techSamples.innerHTML = onSamples.innerHTML = offSamples.innerHTML = geoSamples.innerHTML = '';
-  window.__report = null;
-
-  if(!u && !pasted){ statusBox.appendChild(chip('請先輸入網址或貼上原始碼')); return; }
-
-  statusBox.appendChild(chip('分析中…'));
-  try{
-    const html = pasted || await fetchWithFallbacks(u);
-    const rep = analyzeHTML(html, u || 'about:blank');
-    renderReport(rep);
-    statusBox.innerHTML = '';
-  }catch(e){
-    statusBox.innerHTML = '';
-    statusBox.appendChild(chip('抓取失敗：'+ (e?.message||e)));
-    statusBox.appendChild(chip('改用「貼上原始碼」離線分析吧'));
-  }
-});
-</script>
+</body>
+</html>`;
+
+            const blob = new Blob([reportHTML], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `SEO優化建議報告_${new Date().toISOString().split('T')[0]}.html`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            alert('✅ 優化建議報告已下載！\n\n📄 您可以：\n• 用瀏覽器開啟查看\n• 列印或儲存為 PDF\n• 分享給團隊成員');
+        }
+
+        function generateCheckItemsHTML() {
+            let html = '';
+            checkData.forEach(item => {
+                if (item.type === 'section') {
+                    html += `<div class="section-header">${escapeHtmlForReport(item.text)}</div>`;
+                } else if (item.type === 'subsection') {
+                    html += `<div class="subsection-header">${escapeHtmlForReport(item.text)}</div>`;
+                } else if (item.type === 'check') {
+                    const badgeContent = item.status === 'good' ? '✓' : item.status === 'warning' ? '⚠' : '✕';
+                    html += `
+                        <div class="check-item ${item.status}">
+                            <div class="check-title">
+                                <span class="status-badge">${badgeContent}</span>
+                                <span>${escapeHtmlForReport(item.name)}</span>
+                            </div>`;
+                    
+                    if (item.value) {
+                        html += `<div class="check-value">${escapeHtmlForReport(item.value)}</div>`;
+                    }
+                    
+                    if (item.info) {
+                        html += `<div class="check-info">ℹ️ ${escapeHtmlForReport(item.info)}</div>`;
+                    }
+                    
+                    if (item.suggestion) {
+                        html += `<div class="check-suggestion"><strong>💡 優化建議：</strong>${escapeHtmlForReport(item.suggestion)}</div>`;
+                    }
+                    
+                    if (item.code && item.status !== 'good') {
+                        html += `<div class="code-box">${escapeHtmlForReport(item.code)}</div>`;
+                    }
+                    
+                    html += `</div>`;
+                }
+            });
+            return html;
+        }
+
+        function escapeHtmlForReport(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showLoading() {
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('url-analyze-btn').style.display = 'block';
+            document.getElementById('url-results-buttons').style.display = 'none';
+            document.getElementById('code-analyze-btn').style.display = 'block';
+            document.getElementById('code-results-buttons').style.display = 'none';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').classList.remove('show');
+        }
+    </script>
 </body>
 </html>
